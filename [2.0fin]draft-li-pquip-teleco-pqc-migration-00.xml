@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is built from a template for a generic Internet Draft. Suggestions for
+     improvement welcome - write to Brian Carpenter, brian.e.carpenter @ gmail.com 
+     This can be converted using the Web service at http://xml.resource.org/ -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<!-- You want a table of contents -->
+<!-- Use symbolic labels for references -->
+<!-- This sorts the references -->
+<!-- Change to "yes" if someone has disclosed IPR for the draft -->
+<!-- This defines the specific filename and version number of your draft (and inserts the appropriate IETF boilerplate -->
+<?rfc sortrefs="yes"?>
+<?rfc toc="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc topblock="yes"?>
+<?rfc comments="no"?>
+<rfc category="std"
+     docName="draft-li-pquip-teleco-pqc-migration-00"
+     ipr="trust200902">
+  <front>
+    <title abbrev="teleco PQC migration">PQC migration use cases for the telecom network</title>
+
+      <seriesInfo name="Internet-Draft" value="draft-li-pquip-teleco-pqc-migration-00"/>
+      <author initials="L." surname="Li" fullname="Lun Li">
+        <organization>Huawei</organization>
+        <address>
+          <email>lilun20@huawei.com</email>
+        </address>
+      </author>
+      <author initials="F." surname="Liu" fullname="Faye Liu">
+        <organization>Huawei</organization>
+        <address>
+          <email>liufei19@huawei.com</email>
+        </address>
+      </author>
+
+    <!---->
+
+    <date day="2" month="Mar" year="2025"/>
+
+    <area>Security</area>
+
+    <workgroup>Post-Quantum Use In Protocols</workgroup>
+    <keyword>post-quantum cryptography</keyword>
+    <keyword>PQC telecom use cases</keyword>
+
+    <abstract>
+      <t>Telecommunications (Telecom) networks are important infrastructure. 3rd Generation Partnership Project (3GPP) provides security 
+      specifications for telecom networks, including network devices and user terminals. Meanwhile, the security protocols from IETF widely used in 
+      telecom systems. In the docuemnt, we present some post-quantum risks and assessments that exist in current telecom network based on the sepcifiction. 
+      From the perspective of RFC, this document analyzes possible post-quantum migration cases and potential strategy in typical telecom network scenarios. 
+      The strategy includes the suggestion of related IETF protocols and profiles, which can also provide guidance for other similar communication systems.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor="intro" title="Introduction">
+      <t>Cryptographic technologies are used throughout ICT(Information and communications technology) industry to authenticate the source and protect the 
+      confidentiality and integrity of information that we communicate and store. However, quantum computing technology poses significant threats to 
+      classical cryptography, especially to widely-used cryptographic algorithms that secure much of today's data, rendering electronic secrets vulnerable to discovery.</t>
+
+      <t>Today's 5G network widely uses both symmetric and asymmetric cryptography above across different layers of the network
+       to ensure the security, privacy, and integrity of communications. The permanent identity of device (named Subscription Permanent 
+       Identifier, SUPI) is protected by asymmetric key encryption algorithms when the UE initially accesses the 5G systems. Then, 
+       symmetric key encryption (e.g., AES) is used to protect the signaling control and data when the UE (e.g., the cellphone) communicates with the network. 
+       In addition, a network entity (for example, a base station) uses IPsec tunnels to protect the user data and control plane.  network 
+       functions in the core network use TLS connection for security transmission. The PRINS <xref target="RFC8784"/> can be used to protect communications 
+       between different operator domains through SEPP. These are all related to both symmetric and asymmetric key cryptography</t>
+
+      <t>In fact, servral procedures should considered be migrated to quantum-safe, becase quantum computers endanger both symmetric and asymmetric cryptography:</t>
+
+      <t><list style="symbols">
+        <t>For asymmetric encryption schemes, for example, ECIES (based on Elliptic Curve Cryptography), and IKEv2 (Dbased on iffie-Hellman key exchanges), 
+        Shor's algorithm <xref target="shor"/>, running on a sufficiently powerful quantum computer, can break these systems by making these hard mathematical problems 
+        easy to solve (e.g., ECC used in ECIES and Diffie-Hellman used in IKEv2 relying the difficulty of solving discrete logarithm problems). As a 
+        result, public-key cryptosystems that secure digital signatures, encrypted communications, and key exchanges would become vulnerable to quantum attacks.</t>
+        <t>For symmetric encryption schemes, for example, AES (Advanced Encryption Standard) / SNOW-5G / ZUC and SHA-256 (hash functions), their 
+        vulnerability to quantum computing algorithm (e.g., Grover's algorithm) is still in active discussions in post-quantum cryptography 
+        research community. The major concern is that quantum computer can speed up the process of brute-forcing symmetric keys.</t>
+      </list></t>
+
+      <t>In the document, we propose the telecom use case for PQC migration. The structure of the documents can be seen in 2 sections. 
+      First, the current telecom scenarios are proposed to show the potential PQC risk and the assessment. Then, the migration 
+      use case related to the scenario is proposed and present the migration strategy. Some of the cases are referred from the guideline 
+      of GSMA <xref target="PQ03"/>. Further, this document points out the connections between the IETF protocols and the telecom system for the information 
+      of each WG in contributing the PQC protocol current design as well as in future.</t>
+
+      <section title="Document Organization">
+        <t>The remainder of this document is organized as follows:</t>
+        <t><list style="symbols">
+          <t>Section 3 analyses typical telecom scenarios and potential tisks and the assessment.</t>
+          <t>Section 4 introduces the reference miagration use cases including the migration stretegy.</t>
+          <t>Section 6 describes the analysis of security characteristics</t>
+        </list></t>
+      </section>
+
+    </section>
+
+    <section anchor="requirements-language" title="Requirements Language">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref target="RFC2119"/>.</t>
+    </section>
+
+    <section title="Typical Telecom Scenarios and Potential Risks">
+    <t>This section is the core of this document. each introduced telecom scenarios may contain more than one risks and threats and it will link to the 
+    reference use cases in the next section.</t>
+    <section title="Certificate Enrollment Procedure of the Base station">
+    <t>Given the standardized process of certificate enrolment for base stations defined in 3GPP TS 33.310<xref target="TS33310"/>, we consider the procedure where a base station 
+    (e.g., 5G base station = gNB, or 4G base station = eNodeB) bootstraps and tries to apply a certificate from the operator's CA with a preconfigured certificate 
+    from the vendor CA.</t>
+
+    <t><figure>
+        <artwork name="Scenario of the certificate enrolment of the base station"><![CDATA[ 
+   +-------------+                  +--------------+      +----------------+                                                             
+   |Base Station |                  |   Operator   |      |Security Gateway|                                                             
+   |             |                  |   CA         |      |                |                                                                                                                 
+   +-------------+                  +--------------+      +----------------+                                                             
+     |                                  |                                 |                                                                
+     |--------------------------------->|                                 |                                                                
+     |1a.Request for a                  |                                 |
+     |   operator certificate           |                                 |                                                                
+     |   Atteching vendor certificate.  | +------------------------------+|                                                              
+     |                                  | |1b.Verify atteched vendor cert|+                                                                
+     |                                  | +------------------------------+|                                                              
+     |<---------------------------------|                                 |                                                                
+     |  1c.Issue a operator             |                                 |                                                                
+     |  certificate to BS.              |                                 |                                                                
+     |--------------------------------------------------------------------|                                                                
+     | 2a.Communicate with Core netowrk and security                      |                                                                
+     | GW with Operator certificate.    |                                 |                                                                
+     |                                  | +-----------------------------+ |                                                                
+     |                                  | |2b.authenticate the base     | |                                                                
+     |                                  | |station using operator       +-+                                                                
+     |                                  | |cert and response the        | |
+     |                                  | |request.                     | |                                                                
+     |                                  | +-----------------------------+ |                                                                
+     |                                  |                                 |                                                                                                                         
+      Figure 1   Scenario of the certificate enrolment of the base station]]></artwork></figure></t>
+    <t>As shown in Figure 1, the following steps are performed by gNB/eNodeB to initially establish a secure connection and apply the certificate,
+    which can be an example to show the quantum risk in the current telecom system:</t>
+    <t><list style="decimal">
+      <t>0. The base station pre-installs vendor certificate from vendor CA (out of bound). Then, the base station pre-establishes the IPsec tunnel connection with operator CA.</t>
+      <t>1. The base station request to apply the operator certificate through the IPsec Tunnel.</t>
+      <t>2. The base station communicate to core network through IPsec tunnel and the operator certificate.</t>
+      </list></t>
+    <t>There are two risks related to the quantum computation attack that need to be considered in the above steps.</t>
+    
+    <t>Risk A: Attacker attacking the IPsec tunnel</t>
+    <t><list style="decimal">
+      <t>1. The base station establishes the security connection with operator CA through IPsec Tunnel. During the establishment, the base station exchanges the session protection key with operator ca using IKEv2/IPsec.</t>
+      <t>2. An attacker in risk A eavesdropping and storing the traffic of IPsec tunnel and tries to analyzed and corrupted the key exchange packet in IKEv2 with quantum computing capabilities.</t>
+      <t>3. If the traffic is protected by quantum-resistant approaches, the type 1 attacker will fail to derive the IPsec session key used for base station and operator CA.</t>
+      </list></t>
+    
+    <t>Risk B: Attacker attacking the certificate</t>
+    <t><list style="decimal">
+      <t>1.The attacker in risk B establishes a connection with the operator CA and obtains the X.509 profile of a stolen vendor certificate from other entities.</t>
+      <t>2.The attacker attempts to forge a valid X.509 profile (including the certificate signature) of a vendor certificate.</t>
+      <t>3.If a quantum-resistant signature approaches is used in certificate; the attacker will fail to forge a valid vendor certificate with a valid signature.</t>
+      </list></t>
+    <t>Risk A is non-quantum safe protocols such as the CMPv2 and IPsec (e.g., secure key exchange procedure). Risk B is the non-quantum safe X.509 certificate 
+    (e.g., ECC signatures in the certificate). Two possible quantum risks threaten the security of base station and requires PQC migration to defense the potential 
+    attacker.</t>
+
+    </section><!-- Certificate Enrollment Procedure of the Base station-->
+
+
+    </section><!-- Typical Telecom Scenarios and Potential Risks-->
+
+
+    <section title="Reference Migration Use Cases">
+    
+      <t>This section is the core of this document. For each use case, we present a concise overview and highlight the features 
+      that can help to categorize it. This list is not exhaustive, and if you think we have missed some important use case please 
+      consider contributing to it.</t>
+
+      <section title="Overview of Telecom network">
+      <t>In today's the 5G Telecom network, a variety of cryptographic algorithms and IETF protocols are used across different layers 
+      of the network to ensure the security, privacy, and integrity of communications. Both symmetric and asymmetric cryptography play 
+      crucial roles, where their main telecom usages and related IETF WG can be summarized in Table 1.</t>
+        <table>
+        <name>Summary of symmetric and asymmetric cryptography in 5G Telecom network</name>
+        <thead>
+          <tr>
+            <th align="left">Migration Protocols</th>
+            <th align="left">Usage in 5G</th>
+            <th align="left">Symmetric Cryptography</th>
+            <th align="left">Asymmetric Cryptography</th>
+            <th align="left">Reference in Existing 3GPP specifications</th>
+            <th align="left">Relative IETF WG</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td align="left">Key Derivation</td>
+            <td align="left">Key agreement between UE and individual NF (e.g., K_AMF)</td>
+            <td align="left">KDF based on symmetric cryptography</td>
+            <td align="left">N/A</td>
+            <td align="left">Annex A.1 in 3GPP TS 33.501<xref target="TS33501"/>, TS 33.220<xref target="TS33220"/></td>
+            <td align="left">N/A</td>
+          </tr>
+          <tr>
+            <td align="left">Secure Key Exchange</td>
+            <td align="left">Two entities (e.g., NF/RAN/Security gateway, etc.) to securely exchange keys over an insecure channel for deriving symmetric session keys</td>
+            <td align="left">Integrity and confidential protection in IPsec</td>
+            <td align="left">Diffie-Hellman (DH) or Elliptic Curve Diffie-Hellman (ECDH)</td>
+            <td align="left">Clause 9 in 3GPP TS 33.501</td>
+            <td align="left">IPSECME</td>
+          </tr>
+          <tr>
+            <td align="left">Authentication</td>
+            <td align="left">UE registration and authentication</td>
+            <td align="left">5G-AKA and EAP-AKA'</td>
+            <td align="left">EAP-TLS</td>
+            <td align="left">Annex I.2 in 3GPP TS 33.501</td>
+            <td align="left">EMU</td>
+          </tr>
+          <tr>
+            <td align="left">Authentication for Network function</td>
+            <td align="left">Two NFs mutual authentication</td>
+            <td align="left">N/A</td>
+            <td align="left">Digital Certificate and PKI</td>
+            <td align="left">Clause 13 in 3GPP TS 33.501</td>
+            <td align="left">Lamps</td>
+          </tr>
+          <tr>
+            <td align="left">Identity Protection</td>
+            <td align="left">Concealing SUPI by generating SUCI</td>
+            <td align="left">N/A</td>
+            <td align="left">Public key encryption (ECIES)</td>
+            <td align="left">Clause 6.12 in TS 33.501, 3GPP TS 23.003 <xref target="TS23003"/></td>
+            <td align="left">N/A</td>
+          </tr>
+          <tr>
+            <td align="left">Data Confidentiality and integrity</td>
+            <td align="left">Encryption to protect user plane data and/or control plane signaling</td>
+            <td align="left">AES / SNOW-5G / ZUC </td>
+            <td align="left">N/A</td>
+            <td align="left">Clause 5.11 in 3GPP TS 33.501, TS 35.215<xref target="TS35215"/>, TS 35.221<xref target="TS35221"/></td>
+            <td align="left">CFRG</td>
+          </tr>
+          <tr>
+            <td align="left">Public key Infrastructure</td>
+            <td align="left">Signature of the certificate for security establishment, such as transport layer security</td>
+            <td align="left">N/A</td>
+            <td align="left">Signature algorithm, for example, ECC, etc.</td>
+            <td align="left">3GPP TS 33.310<xref target="TS33310"/></td>
+            <td align="left">ACME /Lamps</td>
+          </tr>
+        </tbody>
+      </table>
+      <t>As shown in the table, some common issues have been discussing in the relevant IETF WGs, but there are some unique characteristics, in terms of the 
+      deployment of telecom networks. Specific use cases are discussed in the following sections, which are proposed based on the scenario in 
+      section 3 to address the identified risks.</t>
+
+      </section><!-- Overview of Telecom network-->
+
+      <section title="N2/N3 migration between base station and security gateway">
+        <section title="Description">
+        <t>In the current telecom network, the base station and the core network need to transmit control signaling and the user's data. 
+        Control signaling is for example non-access stratum information of the UE, including important messages such as user authentication 
+        and authorization information.  The user's data is for example, the communication data between the UE and the website of data network (aka., user plane data). 
+        The foregoing content is transmitted through reference points N2 and N3 respectively. Generally, it can be concluded that N2 is used for 
+        control plane signaling, and N3 is used for user plane data.</t>
+        <t>As described in the threat analysis in Section 2, both the secure connection of the N2 and the N3 reference points use the IPsec protocol. 
+        Specifically, the core network uses a security gateway (SEG) as the endpoint of the IPSec tunnel. And the other end point is base station. 
+        As specified if 3GPP TS 33.501, When an IPsec tunnel is established, IKEv2 is executed and authenticated by the certificate with specified profile.</t>
+        <t>For post-quantum migration of N2/N3, Although IPsec itself uses symmetric encryption for transmission, the current 3GPP recommended IKEv2 protocol 
+        version and certificate format do not include post-quantum considerations. In this use case of N2/N3, the post-quantum migration of IKEv2 should be 
+        considered.</t> 
+        </section>
+
+        <section title="Migration Suggestion">
+        <t>From the perspective of IETF PQUIP and this use case, the following analysis can be considered.</t>
+        <t>About key exchange:</t>
+          <t><list style="symbols">
+              <t>A pre-shared key may be considered as a way, for example, as specified in RFC 8784<xref target="RFC8784"/>, which includes the 
+              pre-shared hybrid key, and the non-hybrid key (e.g, AES only). The reason is same as hybrid key exchange. 
+              Moreover, considering that base stations and SEGs are usually provided by different vendors, extra coordination 
+              may be required or the key pre-configuration can be implemented by operators during the deployment.</t>
+              <t>Directly use the post-quantum algorithm to negotiate keys, which can be considered when the post-quantum algorithm is mature. 
+              Besides, some additional issues also need to be considered, such as increased payload size and IKE fragmentation.</t>
+            </list></t>
+
+        <t>About authentication:</t>
+          <t><list style="symbols">
+              <t>PKIs that support post-quantum signatures need to be considered. Otherwise, certificate-based authentication may be 
+              risky between the base station and the SEG.</t>
+            </list></t>
+        </section> <!-- Migration Suggestion-->
+        
+        <section title="Other Information">
+          <t>For other SDOs, 3GPP has not yet proposed post-quantum migration considerations. The GSMA proposed post-quantum migration guideline<xref target="PQ03"/> 
+          partially including the use case.</t>
+        </section> <!-- Other Information-->
+  
+  
+  </section><!-- N2/N3 migration between base station and security gateway-->
+
+  <section title="Concealment of the Cellphone's Subscription Permanent Identifier">
+    <t>TODO</t>
+  </section><!-- Concealment of the Cellphone's Subscription Permanent Identifier-->
+
+
+  </section><!-- Reference Miagration Use Cases-->
+
+  
+
+  <section anchor="iana-considerations">
+    <name>IANA Considerations</name>
+    <t>This document has no IANA considerations.</t>
+  </section>
+
+  <section title="Security Consideration">
+    <t>TODO</t>
+    
+  </section><!--8 Security Consideration-->
+
+
+
+  </middle>
+
+  <back>
+
+    <references title = "References">
+
+      <references title = "Normative Reference">
+
+      <reference anchor="RFC2119">
+        <front>
+          <title>Key words for use in RFCs to Indicate Requirement Levels</title>
+          <author fullname="S. Bradner" initials="S." surname="Bradner"/>
+          <date month="March" year="1997"/>
+          <abstract>
+            <t>In many standards track documents several words are used to signify the requirements in the specification. These words are often capitalized. This document defines these words as they should be interpreted in IETF documents. This document specifies an Internet Best Current Practices for the Internet Community, and requests discussion and suggestions for improvements.</t>
+          </abstract>
+        </front>
+        <seriesInfo name="BCP" value="14"/>
+        <seriesInfo name="RFC" value="2119"/>
+        <seriesInfo name="DOI" value="10.17487/RFC2119"/>
+      </reference>
+
+      <reference anchor="RFC8784" target="https://www.rfc-editor.org/info/rfc8784">
+        <front>
+        <title>Mixing Preshared Keys in the Internet Key Exchange Protocol Version 2 (IKEv2) for Post-quantum Security</title>
+        <author fullname="S. Fluhrer" initials="S." surname="Fluhrer"/>
+        <author fullname="P. Kampanakis" initials="P." surname="Kampanakis"/>
+        <author fullname="D. McGrew" initials="D." surname="McGrew"/>
+        <author fullname="V. Smyslov" initials="V." surname="Smyslov"/>
+        <date month="June" year="2020"/>
+        <abstract>
+        <t>The possibility of quantum computers poses a serious challenge to cryptographic algorithms deployed widely today. The Internet Key Exchange Protocol Version 2 (IKEv2) is one example of a cryptosystem that could be broken; someone storing VPN communications today could decrypt them at a later time when a quantum computer is available. It is anticipated that IKEv2 will be extended to support quantum-secure key exchange algorithms; however, that is not likely to happen in the near term. To address this problem before then, this document describes an extension of IKEv2 to allow it to be resistant to a quantum computer by using preshared keys.</t>
+        </abstract>
+        </front>
+        <seriesInfo name="RFC" value="8784"/>
+        <seriesInfo name="DOI" value="10.17487/RFC8784"/>
+      </reference>
+
+      <reference anchor="TS33501" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3169">
+        <front>
+        <title>Security architecture and procedures for 5G System</title>
+        <author fullname="3GPP"/>
+        <date month="January" year="2025"/>
+        </front>
+        <seriesInfo name="TS" value="33.501"/>
+        <seriesInfo name="Group" value="3GPP/SA3"/>
+      </reference>
+
+      <reference anchor="TS33310" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2293">
+        <front>
+        <title>Network Domain Security (NDS); Authentication Framework (AF)</title>
+        <author fullname="3GPP"/>
+        <date month="January" year="2025"/>
+        </front>
+        <seriesInfo name="TS" value="33.310"/>
+        <seriesInfo name="Group" value="3GPP/SA3"/>
+      </reference>
+
+      <reference anchor="TS33220" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2280">
+        <front>
+        <title>Generic Authentication Architecture (GAA); Generic Bootstrapping Architecture (GBA)</title>
+        <author fullname="3GPP"/>
+        <date month="March" year="2024"/>
+        </front>
+        <seriesInfo name="TS" value="33.220"/>
+        <seriesInfo name="Group" value="3GPP/SA3"/>
+      </reference>
+
+      <reference anchor="TS23003" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=729">
+        <front>
+        <title>Numbering, addressing and identification</title>
+        <author fullname="3GPP"/>
+        <date month="January" year="2025"/>
+        </front>
+        <seriesInfo name="TS" value="23.003"/>
+        <seriesInfo name="Group" value="3GPP/CT4"/>
+      </reference>
+
+      <reference anchor="TS35215" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2395">
+        <front>
+        <title>	Specification of the 3GPP Confidentiality and Integrity Algorithms UEA2 and UIA2; Document 1: UEA2 and UIA2 specifications</title>
+        <author fullname="3GPP"/>
+        <date month="April" year="2024"/>
+        </front>
+        <seriesInfo name="TS" value="35.215"/>
+        <seriesInfo name="Group" value="3GPP/SA3"/>
+      </reference>
+
+      <reference anchor="TS35221" target="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2395">
+        <front>
+        <title>	Specification of the 3GPP Confidentiality and Integrity Algorithms UEA2 and UIA2; Document 1: UEA2 and UIA2 specifications</title>
+        <author fullname="3GPP"/>
+        <date month="April" year="2024"/>
+        </front>
+        <seriesInfo name="TS" value="35.221"/>
+        <seriesInfo name="Group" value="3GPP/SA3"/>
+      </reference>
+
+      <reference anchor="PQ03" target="https://www.gsma.com/newsroom/gsma_resources/pq-03-post-quantum-cryptography-guidelines-for-telecom-use-cases/">
+        <front>
+        <title>	Post Quantum Cryptography Guidelines for Telecom Use Cases v2.0</title>
+        <author fullname="GSMA"/>
+        <date month="October" year="2024"/>
+        </front>
+        <seriesInfo name="PQ" value="03"/>
+        <seriesInfo name="Task Force" value="PQTN"/>
+      </reference>
+
+    </references>
+
+      <references title = "Informative References">
+    
+      <reference anchor="PRINS" target="https://www.mpirical.com/blog/5g-security-when-roaming-part-2">
+        <front>
+        <title>5G Security when Roaming Part 2</title>
+        <author initials="G." surname="Green" fullname="Graeme Green"></author>
+        <date month="May" day="21" year="2021"/>
+        </front>
+      </reference>
+
+      <reference anchor="shor" target="https://ieeexplore.ieee.org/document/365700/authors#authors">
+        <front>
+        <title>Algorithms for Quantum Computation: Discrete Logarithms and Factoring</title>
+        <author initials="P.W." surname="Shor" fullname="P. W. Shor">
+          <organization>AT and T Bell Laboratories</organization>
+        </author>
+        <date month="Aug" day="06" year="2002"/>
+        </front>
+        <seriesInfo name="DOI" value="10.1109/SFCS.1994.365700"/>
+      </reference>
+
+
+    </references>
+  </references>
+  
+    <section anchor="acknowledgments" numbered="false"> 
+      <name>Acknowledgments</name>
+      <t>TODO</t>
+    </section>
+
+  </back>
+</rfc>
